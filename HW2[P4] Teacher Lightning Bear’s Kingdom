@@ -1,0 +1,152 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+typedef int bool;  
+#define false 0  
+#define true  1 
+
+struct stack{
+    int arr[1000000];
+    int top;
+};
+
+void push(struct stack* Stack, int a);
+int pop(struct stack* Stack);
+int peep(struct stack* Stack);
+int find_ai(int c, int S, int R, int N, int** road);
+struct stack* searchdown(int c, int D, int** road, int N);
+int mini(struct stack* A, struct stack* B);
+struct stack* iteration(int now, int N, int D, int** road, int* visited, struct stack* Stack);
+void print(struct stack* Stack, int* visited, int N);
+
+int main(){
+    int N, Q, S, R;
+    scanf("%d %d %d %d", &N, &Q, &S, &R);
+
+    int** road  = (int**)(malloc(sizeof(int*)*N));
+    for(int i=0; i<N; i++){
+        road[i] = (int*)(malloc(sizeof(int)*N));
+        for(int j=0; j<N; j++){
+            road[i][j] = false;
+        }       
+    }
+
+    int a, b, c;
+
+    for(int i=0; i<N-1; i++){
+        scanf("%d %d", &a, &b);
+        road[a-1][b-1] = true;
+        road[b-1][a-1] = true; 
+    }
+
+    int answer[Q];
+    for(int i=0; i<Q; i++){
+        scanf("%d", &c);
+        answer[i] = find_ai(c, S, R, N, road)+1;
+    }
+    for(int i=0; i<Q; i++) printf("%d\n", answer[i]);
+    return 0;
+}
+
+int mini(struct stack* A, struct stack* B){
+    if(A->top>B->top)
+        return B->top;
+    else return A->top;
+}
+int find_ai(int c, int S, int R, int N, int** road){
+    struct stack* rs;
+    struct stack* rr;
+    //printf("wow");
+    rs = searchdown(c, S, road, N);
+    /*
+    printf("this is rs:\n");
+    for(int i=0; i<=rs->top; i++){
+        printf("%d ", rs->arr[i]);
+    }
+    */
+    
+    rr = searchdown(c, R, road, N);
+    /*
+    printf("\nthis is rr:\n");
+    for(int i=0; i<=rr->top; i++){
+        printf("%d ", rr->arr[i]);
+    }
+    */
+
+    int ai;
+
+    for(int i=0; i<=mini(rs, rr); i++){
+        if(rs->arr[i] != rr->arr[i]){
+            //printf("\nthis is ai: %d\n", ai);
+            return ai;
+        }
+        else 
+            ai = rs->arr[i];
+    }
+    //printf("this is ai: %d\n", ai);
+    return ai;
+}
+
+struct stack* searchdown(int c, int D, int** road, int N){
+    int now = c-1;
+    int* visited  = (int*)(malloc(sizeof(int)*N));
+    for(int i=0; i<N; i++) visited[i] = false;
+    
+    struct stack* Stack = (struct stack*)(malloc(sizeof(struct stack)));
+    Stack->top = -1; 
+    push(Stack, c-1);
+    visited[c-1] = true;
+    return iteration(now, N, D, road, visited, Stack);
+}
+
+struct stack* iteration(int now, int N, int D, int** road, int* visited, struct stack* Stack){
+    if(now == D-1) {
+        return Stack;
+    }
+    
+    //print(Stack, visited, N);
+    for(int i=0; i<N; i++){
+        if((road[now][i] == true) && (visited[i] == false)){
+            push(Stack, i);
+            visited[i] = true;
+            now = i;
+            return iteration(now, N, D, road, visited, Stack);
+        }
+    }
+    
+    pop(Stack); 
+    now = peep(Stack);
+
+    return iteration(now, N, D, road, visited, Stack);
+    
+}
+
+void push(struct stack* Stack, int a){
+    Stack->top++;
+    Stack->arr[Stack->top] = a;
+    return;
+}
+
+int pop(struct stack* Stack){
+    int temp = Stack->arr[Stack->top];
+    Stack->top--;
+    return temp;
+}
+
+int peep(struct stack* Stack){
+    return Stack->arr[Stack->top];
+}
+
+void print(struct stack* Stack, int* visited, int N){
+    printf("this is stack:\n");
+    for(int i=0; i<=Stack->top; i++)
+        printf("%d ", Stack->arr[i]);
+    printf("\nthis is visited:\n");
+    for(int i=0; i<N; i++){
+        if(visited[i]==true)
+            printf("*");
+        else printf(" ");
+    }
+    printf("\n-----------------");
+    return;
+}
